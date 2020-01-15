@@ -1,30 +1,16 @@
 type Query {
     ok: String!
+    getUser(_id: ID!, token: String!): User!
 }
 
 type Mutation {
-    addTeam(name: String!): Team!
-    addMatch(teams: [ID!]!, date: String!): Match!
-    beginMatch(match: ID!): Match!
-    endMatch(match: ID!): Match!
-    updateScoreboard(match: ID!, scoreboard: String!): Match!
+    addUser(userName: String!, password: String!): User!
+    login(userName: String!, password: String!): String!
 }
 
-type Subscription {
-    MatchSubscription(match: ID!): Match!
-    TeamSubscription(team: ID!): Match!
-}
-
-type Team {
+type User {
     _id: ID!
-    name: String!
-}
-
-type Match {
-    _id: ID!
-    teams: [Team!]!
-    date: String!
-    scoreboard: String!
-    in_game: Boolean!
-    ended: Boolean!
+    token: String!
+    userName: String!
+    password: String!
 }

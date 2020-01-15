@@ -3,8 +3,6 @@ import { GraphQLServer, PubSub } from "graphql-yoga";
 import "babel-polyfill";
 import Query from './resolvers/Query';
 import Mutation from './resolvers/Mutation';
-import Subscription from './resolvers/Subscription';
-import Match from './resolvers/Match';
 
 
 const usr = "alonso";
@@ -37,9 +35,7 @@ const connectToDb = async function(usr, pwd, url) {
 const runGraphQLServer = function(context) {
   const resolvers = {
     Query,
-    Mutation,
-    Subscription,
-    Match
+    Mutation
   };
 
   const server = new GraphQLServer({ typeDefs: './src/schema.graphql', resolvers, context });
