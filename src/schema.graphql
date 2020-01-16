@@ -1,15 +1,27 @@
 type Query {
     ok: String!
-    getUser(userID: ID!, token: String!): User!
+    getUser(userID: ID!): User!
+    getPost(postID: ID!): Post!
+    getUsers: [User!]
+    getPosts: [Post!]
+    getUserPosts(userID: ID!): [Post!]
 }
 
 type Mutation {
-    addUser(userName: String!, password: String!): User!
     login(userName: String!, password: String!): String!
     logout(userID: ID!, token: String!): User!
+    addUser(userName: String!, password: String!): User!
+    addPost(userID: ID!, token: String!, title: String!, content: String!): Post!
+    updateUser(userID: ID!, token: String!, userName: String, password: String): User!
+    updatePost(userID: ID!, token: String!, postID: ID!, title: String, content: String): Post!
     removeUser(userID: ID!, token: String!): User!
+    removePost(userID: ID!, token: String!, postID: ID!): Post!  
+}
 
-    addPost(userName: String!, token: String!, title: String!, content: String!): Post!
+type Subscription {
+    postSubscription(postID: ID!): Post!
+    userSubscription(userID: ID!): Post!
+    newUserSubscription: User!
 }
 
 type User {
