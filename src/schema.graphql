@@ -1,16 +1,28 @@
 type Query {
     ok: String!
-    getUser(_id: ID!, token: String!): User!
+    getUser(userID: ID!, token: String!): User!
 }
 
 type Mutation {
     addUser(userName: String!, password: String!): User!
     login(userName: String!, password: String!): String!
+    logout(userID: ID!, token: String!): User!
+    removeUser(userID: ID!, token: String!): User!
+
+    addPost(userName: String!, token: String!, title: String!, content: String!): Post!
 }
 
 type User {
     _id: ID!
-    token: String!
+    token: String
     userName: String!
     password: String!
+}
+
+type Post {
+    _id: ID!
+    title: String!
+    content: String!
+    date: String!
+    user: User!
 }

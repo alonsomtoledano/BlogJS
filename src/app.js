@@ -3,6 +3,7 @@ import { GraphQLServer, PubSub } from "graphql-yoga";
 import "babel-polyfill";
 import Query from './resolvers/Query';
 import Mutation from './resolvers/Mutation';
+import Post from './resolvers/Post';
 
 
 const usr = "alonso";
@@ -35,7 +36,8 @@ const connectToDb = async function(usr, pwd, url) {
 const runGraphQLServer = function(context) {
   const resolvers = {
     Query,
-    Mutation
+    Mutation,
+    Post
   };
 
   const server = new GraphQLServer({ typeDefs: './src/schema.graphql', resolvers, context });
@@ -56,9 +58,13 @@ const runGraphQLServer = function(context) {
 }
 const runApp = async function() {
   const client = await connectToDb(usr, pwd, url);
+  const db = client.db("blogDatabase");
+  const collectionUsers = db.collection("users");
+  const collectionPosts = db.collection("posts");
+
   console.log("Connect to Mongo DB");
   try {
-    runGraphQLServer({ client, pubsub });
+    runGraphQLServer({ client, pubsub, collectionUsers, collectionPosts });
   } catch (e) {
     client.close();
   }

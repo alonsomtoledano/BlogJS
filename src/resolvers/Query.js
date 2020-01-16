@@ -1,19 +1,15 @@
-import { argumentsObjectFromField } from "apollo-utilities";
+import { ObjectID } from "mongodb";
 
 const Query = {
   ok: () => {
     return "ok";
   },
   getUser: async (parent, args, ctx, info) => {
-    const { _id, token} = args;
-    const { client } = ctx;
+    const { userID, token} = args;
+    const { collectionUsers } = ctx;
 
-    const db = client.db("NetflixDatabase");
-    const collectionUsers = db.collection("users");
-
-    const findUser = await collectionUsers.findOne({ _id: ObjectID(_id) });
-    console.log(findUser);
-    if(findUser.token === token){
+    const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+    if(findUser){
       return findUser;
     }
     else throw new Error("User is not logged in");
