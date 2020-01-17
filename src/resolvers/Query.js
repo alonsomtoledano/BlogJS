@@ -1,36 +1,33 @@
 import { ObjectID } from "mongodb";
 
 const Query = {
-  ok: () => {
-    return "ok";
-  },
-  getUser: async (parent, args, ctx, info) => {
-    const { userID } = args;
-    const { collectionUsers } = ctx;
-
-    return await collectionUsers.findOne({ _id: ObjectID(userID)});
-  },
   getPost: async (parent, args, ctx, info) => {
-    const { postID } = args;
-    const { collectionPosts } = ctx;
+    const { userID, token, postID } = args;
+    const { collectionUsers, collectionPosts } = ctx;
 
-    return await collectionPosts.findOne({ _id: ObjectID(postID)});
-  },
-  getUsers: async (parent, args, ctx, info) => {
-    const { collectionUsers } = ctx;
-
-    return await collectionUsers.find({}).toArray();
+    const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+    if (findUser){
+      return await collectionPosts.findOne({ _id: ObjectID(postID)});
+    } else throw new Error("User is not logged in");
   },
   getPosts: async (parent, args, ctx, info) => {
-    const { collectionPosts } = ctx;
+    const { userID, token } = args;
+    const { collectionUsers, collectionPosts } = ctx;
 
-    return await collectionPosts.find({}).toArray();
+    const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+    if (findUser){
+      return await collectionPosts.find({}).toArray();
+    } else throw new Error("User is not logged in");
   },
   getUserPosts: async (parent, args, ctx, info) => {
-    const { userID } = args;
-    const { collectionPosts } = ctx;
+    const { userIDlog, token, userID } = args;
+    const { collectionUsers, collectionPosts } = ctx;
 
-    return await collectionPosts.find({ user: userID }).toArray();
+
+    const findUser = await collectionUsers.findOne({ _id: ObjectID(userIDlog), token });
+    if (findUser){
+      return await collectionPosts.find({ author: userID }).toArray();
+    } else throw new Error("User is not logged in");
   }
 }
 

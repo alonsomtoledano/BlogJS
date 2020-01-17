@@ -3,18 +3,22 @@ import * as uuid from 'uuid';
 
 const Mutation = {
     login: async (parent, args, ctx, info) => {
-        const { userName, password } = args;
+        const { mail, password } = args;
         const { collectionUsers } = ctx;
 
-        const findUser = await collectionUsers.findOne({ userName });
-        if(!findUser) throw new Error("Wrong UserName");
+        const findUser = await collectionUsers.findOne({ mail });
+        if(!findUser) throw new Error("Wrong mail");
         if(findUser.password === password){
             const token = uuid.v4();
 
-            await collectionUsers.updateOne({ userName },
-            {$set: {token: token}});
-            
-            return token;
+            await collectionUsers.updateOne({ _id: findUser._id },
+            {$set: {token}});
+
+            setTimeout( () => {
+                collectionUsers.updateOne({_id: findUser._id}, {$set: {token:null}});
+            }, 1800000)
+
+            return await collectionUsers.findOne({ _id: findUser._id });
         }
         else throw new Error("Wrong Password");
     },
@@ -32,36 +36,24 @@ const Mutation = {
         else throw new Error("User is not logged in");
     },
     addUser: async (parent, args, ctx, info) => {
-        const { userName, password } = args;
+        const { mail, password, author } = args;
         const { collectionUsers, pubsub } = ctx;
 
-        const findUser = await collectionUsers.findOne({ userName });
+        const findUser = await collectionUsers.findOne({ mail });
         if (!findUser){
-            const result = await collectionUsers.insertOne({ userName, password });
-
-            pubsub.publish(
-                "12345",
-                {
-                    newUserSubscription: result.ops[0]
-                }
-            );
+            const result = await collectionUsers.insertOne({ mail, password, author });
 
             return result.ops[0];
         }
-        else throw new Error("User already exist");
+        else throw new Error("Mail already exist");
     },
     addPost: async (parent, args, ctx, info) => {
-        const { userID, token, title, content } = args;
+        const { userID, token, title, description } = args;
         const { collectionUsers, collectionPosts, pubsub } = ctx;
 
-        const date = new Date();
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-
-        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token, author: true });
         if(findUser){
-            const result = await collectionPosts.insertOne({ title, content, date: `${day}/${month}/${year}`, user: userID });
+            const result = await collectionPosts.insertOne({ title, description, author: userID });
 
             pubsub.publish(
                 userID,
@@ -72,64 +64,22 @@ const Mutation = {
 
             return result.ops[0];
         }
-        else throw new Error("User is not logged in");
-    },
-    updateUser: async (parent, args, ctx, info) => {
-        const { userID, token, userName, password } = args;
-        const { collectionUsers } = ctx;
-
-        if(await collectionUsers.findOne({ userName })) throw new Error("User already exist");
-
-        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
-        if(findUser){
-            await collectionUsers.updateOne({ _id: ObjectID(userID) },
-                {$set: { userName: userName || findUser.userName, 
-                password: password || findUser.password}});
-            
-            return await collectionUsers.findOne({ _id: ObjectID(userID) });
-        }
-        else throw new Error("User is not logged in");
-    },
-    updatePost: async (parent, args, ctx, info) => {
-        const { userID, token, postID, title, content } = args;
-        const { collectionUsers, collectionPosts, pubsub } = ctx;
-
-        const date = new Date();
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-
-        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
-        if(findUser){
-            const findPost = await collectionPosts.findOne({ _id: ObjectID(postID) });
-            await collectionPosts.updateOne({ _id: ObjectID(postID) },
-                {$set: { title: title || findPost.title, 
-                content: content || findPost.content,
-                date: `${day}/${month}/${year}`}});
-
-                const updatedPost = await collectionPosts.findOne({ _id: ObjectID(postID) });
-
-                pubsub.publish(
-                    postID,
-                    {
-                        postSubscription: updatedPost
-                    }
-                );
-            
-            return updatedPost;
-        }
-        else throw new Error("User is not logged in");
+        else throw new Error("User is not logged in or is not an Author");
     },
     removeUser: async (parent, args, ctx, info) => {
-        const { userID, token } = args;
+        const { userIDlog, token, userID } = args;
         const { collectionUsers, collectionPosts } = ctx;
   
-        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+        const findUser = await collectionUsers.findOne({ _id: ObjectID(userIDlog), token });
         if(findUser){
-            await collectionUsers.deleteOne({ _id: ObjectID(userID) });
-            await collectionPosts.deleteMany({ user: userID });
-    
-            return findUser;
+            if(userIDlog === userID){
+                await collectionUsers.deleteOne({ _id: ObjectID(userID) });
+                if(findUser.author){
+                    await collectionPosts.deleteMany({ author: userID });
+                }
+                return findUser;
+            }
+            else throw new Error("You can not remove others account");
         }
         else throw new Error("User is not logged in");
     },
@@ -137,10 +87,14 @@ const Mutation = {
         const { userID, token, postID } = args;
         const { collectionUsers, collectionPosts } = ctx;
   
-        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token });
+        const findUser = await collectionUsers.findOne({ _id: ObjectID(userID), token, author: true });
         if(findUser){
             const findPost = await collectionPosts.findOne({ _id: ObjectID(postID) });
-            await collectionPosts.deleteOne({ _id: ObjectID(postID) });
+            if(findPost.author === userID){
+                await collectionPosts.deleteOne({ _id: ObjectID(postID) });
+            }
+            else throw new Error("You can not remove others post");
+            
     
             return findPost;
         }

@@ -1,40 +1,33 @@
 type Query {
-    ok: String!
-    getUser(userID: ID!): User!
-    getPost(postID: ID!): Post!
-    getUsers: [User!]
-    getPosts: [Post!]
-    getUserPosts(userID: ID!): [Post!]
+    getPost(userID: ID!, token: String!, postID: ID!): Post!
+    getPosts(userID: ID!, token: String!): [Post!]
+    getUserPosts(userIDlog: ID!, token: String!, userID: ID!): [Post!]
 }
 
 type Mutation {
-    login(userName: String!, password: String!): String!
+    login(mail: String!, password: String!): User!
     logout(userID: ID!, token: String!): User!
-    addUser(userName: String!, password: String!): User!
-    addPost(userID: ID!, token: String!, title: String!, content: String!): Post!
-    updateUser(userID: ID!, token: String!, userName: String, password: String): User!
-    updatePost(userID: ID!, token: String!, postID: ID!, title: String, content: String): Post!
-    removeUser(userID: ID!, token: String!): User!
+    addUser(mail: String!, password: String!, author: Boolean!): User!
+    addPost(userID: ID!, token: String!, title: String!, description: String!): Post!
+    removeUser(userIDlog: ID!, token: String!, userID: ID!): User!
     removePost(userID: ID!, token: String!, postID: ID!): Post!  
 }
 
 type Subscription {
-    postSubscription(postID: ID!): Post!
     userSubscription(userID: ID!): Post!
-    newUserSubscription: User!
 }
 
 type User {
     _id: ID!
     token: String
-    userName: String!
+    mail: String!
     password: String!
+    author: Boolean!
 }
 
 type Post {
     _id: ID!
     title: String!
-    content: String!
-    date: String!
-    user: User!
+    description: String!
+    author: User!
 }

@@ -1,9 +1,9 @@
 import { ObjectID } from "mongodb";
 
 const Post = {
-    user: async (parent, args, ctx, info) => {
+    author: async (parent, args, ctx, info) => {
         const { collectionUsers } = ctx;
-        const _id = parent.user;
+        const _id = parent.author;
 
         return await collectionUsers.findOne({ _id: ObjectID(_id) });
     }
