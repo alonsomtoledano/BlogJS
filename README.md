@@ -1,12 +1,4 @@
 # 📓 Blog
-
-<p align="center">
-  <img src="https://media.giphy.com/media/CiTLZWskt7Fu/source.gif"><br />
-  Maybe is not the best work, but it's honest work
-</p>
-
-
-
 ### Install
 ```js
 npm install
